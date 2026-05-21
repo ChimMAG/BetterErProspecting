@@ -26,6 +26,7 @@ public class ModConfig {
 	public bool StonePercentSearch = true;
 	public int StoneSearchRadius = 64;
 	public int StoneDmg = 4;
+    public string StoneSearchBlackList = "rock-suevite";
 
 	public bool AddBoreHoleMode = true;
 	public int BoreholeRadius = 8;

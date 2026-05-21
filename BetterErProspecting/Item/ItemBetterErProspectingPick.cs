@@ -192,14 +192,18 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 		sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:area-sample", walkRadius));
 
 		Dictionary<string, (int Distance, int Count)> rockInfo = new();
+        var blacklistedCodes = BetterErProspect.Config.StoneSearchBlackList.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToHashSet();
+
 
 		BlockPos blockPos = blockSel.Position.Copy();
 		var blockEnd = blockPos.AddCopy(-walkRadius, 0, -walkRadius);
 		blockEnd.Y = 1;
 		var cache = new Dictionary<string, string>();
+
 		api.World.BlockAccessor.WalkBlocks(blockPos.AddCopy(walkRadius, walkRadius, walkRadius), blockEnd,
 			(walkBlock, x, y, z) => {
                 if (!IsRock(walkBlock, cache, out string key)) return;
+                if (blacklistedCodes.Contains(key)) return;
                 int distance = -1;
 
                 // No need for this in this case
@@ -218,9 +222,6 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:no-rocks-near"), EnumChatType.Notification);
             return config.StoneDmg;
 		}
-
-		rockInfo.Remove("rock-meteorite-iron");
-		rockInfo.Remove("rock-suevite");
 
 		sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:found-rocks"));
 

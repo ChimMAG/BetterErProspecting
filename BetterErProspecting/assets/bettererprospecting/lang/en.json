@@ -68,6 +68,8 @@
   "StoneSearchRadius-description": "Stone mode search radius",
   "StoneDmg-setting": "Stone Damage",
   "StoneDmg-description": "Tool damage for stone mode",
+  "StoneSearchBlackList-setting": "Stone Search blacklist rocks",
+  "StoneSearchBlackList-description": "Comma-separated ore codes ignored by stone search mode. Default if you're not sure.",
 
   "AddBoreHoleMode-setting": "Enable Borehole Mode",
   "AddBoreHoleMode-description": "A straight-line mode. Only reports when breaking the top of the block, scans the world until the bottom and reports selected blocks ( Any or both of Ore and Stone blocks )",

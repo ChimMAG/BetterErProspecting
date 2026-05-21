@@ -1,5 +1,5 @@
 {
-  "version": 28,
+  "version": 29,
   "file": "BetterErProspecting.json",
   "settings": [
     {
@@ -147,6 +147,14 @@
         "max": 10
       },
       "weight": 13.3
+    },
+    {
+      "code": "StoneSearchBlackList",
+      "ingui": "StoneSearchBlackList-setting",
+      "type": "string",
+      "comment": "StoneSearchBlackList-description",
+      "default": "rock-suevite",
+      "weight": 13.5
     },
     {
       "type": "separator",
