@@ -21,7 +21,6 @@ public class BetterErProspect : ModSystem {
 	public static event Action ReloadTools;
 
 	public override void Start(ICoreAPI api) {
-		api.Logger.Debug("[BetterErProspecting] Starting...");
 		base.Start(api);
 
 		harmony = new Harmony(Mod.Info.ModID);
@@ -38,7 +37,8 @@ public class BetterErProspect : ModSystem {
 		}
 
 		PatchUnpatch();
-		api.RegisterItemClass("ItemBetterErProspectingPick", typeof(ItemBetterErProspectingPick));
+        api.RegisterItemClass("ItemProspectingPick", typeof(ItemBetterErProspectingPick));
+        Logger.Debug("ItemProspectingPick item re-registered to mod's implementation");
 	}
 
     private void SubscribeToConfigChange() {
