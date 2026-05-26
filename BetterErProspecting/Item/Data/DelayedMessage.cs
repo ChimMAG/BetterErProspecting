@@ -9,12 +9,13 @@ public class DelayedMessage {
 	public string message;
 	public EnumChatType ChatType;
 
-	internal DelayedMessage(int chatGroup, string message, EnumChatType chatType) {
+    internal DelayedMessage(string message, int chatGroup, EnumChatType chatType = EnumChatType.Notification) {
 		this.chatGroup = chatGroup;
 		this.message = message;
 		ChatType = chatType;
 	}
-	internal DelayedMessage(string message) {
+
+    internal DelayedMessage(string message) {
 		chatGroup = GlobalConstants.InfoLogChatGroup;
 		this.message = message;
 		ChatType = EnumChatType.Notification;

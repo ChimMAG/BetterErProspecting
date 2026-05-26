@@ -7,6 +7,7 @@ using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.CommandAbbr;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -44,6 +45,9 @@ public class PptTracker : ModSystem {
 	private const string SaveKey = "betterErProspectingPptData";
 	private const string ChannelName = "bettererprospecting_ppt";
 
+    public const string ShouldReprospectNotifyKey = "betterErProspectingShouldReprospectNotify";
+    public static int ShouldReprospectNotify;
+
 	private IServerNetworkChannel serverChannel;
 	private IClientNetworkChannel clientChannel;
 	private ICoreServerAPI sapi;
@@ -80,7 +84,13 @@ public class PptTracker : ModSystem {
 	}
 
 	private void OnSaveGameLoaded() {
-		byte[] savedData = sapi.WorldManager.SaveGame.GetData(SaveKey);
+        byte[]? savedData = sapi.WorldManager.SaveGame.GetData(SaveKey);
+
+        var notifyData = sapi.WorldManager.SaveGame.GetData(ShouldReprospectNotifyKey);
+        if (notifyData != null) {
+            ShouldReprospectNotify = SerializerUtil.Deserialize<int>(notifyData);
+        }
+
 		if (savedData != null) {
 			var loaded = SerializerUtil.Deserialize<Dictionary<string, PptData>>(savedData);
 			if (loaded == null) return;
@@ -91,10 +101,12 @@ public class PptTracker : ModSystem {
             Mod.Logger.Debug($"Loaded ppt data for {loaded.Count} ore codes from save");
             // Remove sometime later ( 1.23 ?). Fixing a 1.22 initial mod release loss of data on manual save
             sapi.Event.ServerRunPhase(EnumServerRunPhase.RunGame, FillOreDataFromReadings);
-		} else {
-            Mod.Logger.Notification("Found no ppt data for save file. Consider reprospecting");
-            sapi.Event.ServerRunPhase(EnumServerRunPhase.RunGame, FillOreDataFromReadings);
-		}
+        } else if (notifyData == null) {
+            // This will run even if a world had no readings created and still ask for reprospect. Not a big issue
+            Mod.Logger.Notification("Found no ppt data for save file. Notifying the player to run reprospect");
+            sapi.WorldManager.SaveGame.StoreData(ShouldReprospectNotifyKey, SerializerUtil.SerializedOne);
+            ShouldReprospectNotify = 1;
+        }
 	}
 
 	private void OnSaveGameGettingSaved() {
@@ -107,12 +119,12 @@ public class PptTracker : ModSystem {
         Mod.Logger.Debug($"Saved ppt data for {dataToSave.Count} ore codes");
 	}
 
-	private void OnPlayerJoin(IServerPlayer byPlayer) {
+    private void OnPlayerJoin(IServerPlayer serverPlayer) {
 		if (oreData.IsEmpty)
 			return;
 
 		var packet = new PptDataPacket(new Dictionary<string, PptData>(oreData));
-		serverChannel?.SendPacket(packet, byPlayer);
+        serverChannel?.SendPacket(packet, serverPlayer);
 	}
 
     private void OnClientReceivePacket(PptDataPacket packet) {

@@ -123,8 +123,9 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 	// Modded Density amount-based search. Square with chunkSize radius around current block. Whole mapheight
     private int ProbeBlockDensityMode(IServerPlayer serverPlayer, BlockSelection blockSel) {
 		List<DelayedMessage> delayedMessages = [];
+        List<DelayedMessage> debugMessages = [];
 
-		Dictionary<string, int> codeToFoundCount = ProspectingSystem.GenerateBlockData(sapi, blockSel.Position, delayedMessages);
+        Dictionary<string, int> codeToFoundCount = ProspectingSystem.GenerateBlockData(sapi, blockSel.Position, debugMessages);
 
         if (!ProspectingSystem.generateReadigs(sapi, blockSel.Position, codeToFoundCount, out PropickReading readings, out var updatePairs, delayedMessages: delayedMessages)) {
             return 1;
@@ -138,7 +139,12 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 		var textResults = readings.ToHumanReadable(serverPlayer.LanguageCode, ppws.pageCodes);
 		serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, textResults, EnumChatType.Notification);
 
-		if (config.DebugMode) { delayedMessages.ForEach(msg => msg.Send(serverPlayer)); }
+
+        if (config.DebugMode) {
+            debugMessages.ForEach(msg => msg.Send(serverPlayer));
+        }
+
+        delayedMessages.ForEach(msg => msg.Send(serverPlayer));
 
 		sapi.ModLoader.GetModSystem<ModSystemOreMap>()?.DidProbe(readings, serverPlayer);
 

@@ -216,6 +216,9 @@ public class ProspectingSystem : ModSystem {
 			var onlineUids = sapi.World.AllOnlinePlayers.Select(p => p.PlayerUID).ToHashSet();
             oml.PropickReadingsByPlayer.RemoveAllByKey(onlineUids.Contains);
 
+            sapi.WorldManager.SaveGame.StoreData(PptTracker.ShouldReprospectNotifyKey, SerializerUtil.SerializedZero);
+            PptTracker.ShouldReprospectNotify = 0;
+
 			logger.Notification("[BetterEr Prospecting] Reprospecting finished");
 		} catch (Exception ex) {
 			logger.Error("[BetterEr Prospecting] Error during reprospecting: {0}", ex);
@@ -228,8 +231,8 @@ public class ProspectingSystem : ModSystem {
 	}
 
 
-	public static Dictionary<string, int> GenerateBlockData(ICoreServerAPI api, BlockPos blockPos, List<DelayedMessage> delayedMessages = null) {
-		delayedMessages ??= [];
+    public static Dictionary<string, int> GenerateBlockData(ICoreServerAPI api, BlockPos blockPos, List<DelayedMessage> debugMessages = null) {
+        debugMessages ??= [];
 		const int radius = ItemBetterErProspectingPick.densityRadius;
 
 		int mapHeight = api.World.BlockAccessor.GetTerrainMapheightAt(blockPos);
@@ -263,8 +266,8 @@ public class ProspectingSystem : ModSystem {
 			});
 
 		if (nopageVariant.Count <= 0) return codeToFoundCount;
-		delayedMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key", string.Join(", ", nopageVariant))));
-		delayedMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys))));
+        debugMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key", string.Join(", ", nopageVariant))));
+        debugMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys))));
 
 		return codeToFoundCount;
 	}
@@ -326,6 +329,11 @@ public class ProspectingSystem : ModSystem {
 		}
 
 		addMiscReadings(sapi, readings, blockPos, delayedMessages);
+
+        if (PptTracker.ShouldReprospectNotify == 1) {
+            delayedMessages.Add(new DelayedMessage("[BetterEr Prospecting] World requires a reprospect. Please ask a person with server control permissions to run '/btrpr reprospect' with a '/btrpr oreData` afterwards.",
+                GlobalConstants.GeneralChatGroup));
+        }
 		return true;
 	}
 
