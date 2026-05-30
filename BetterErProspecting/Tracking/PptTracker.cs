@@ -84,15 +84,19 @@ public class PptTracker : ModSystem {
 	}
 
 	private void OnSaveGameLoaded() {
-        byte[]? savedData = sapi.WorldManager.SaveGame.GetData(SaveKey);
+        byte[]? pptData = sapi.WorldManager.SaveGame.GetData(SaveKey);
+        byte[]? notifyReprospectData = sapi.WorldManager.SaveGame.GetData(ShouldReprospectNotifyKey);
 
-        var notifyData = sapi.WorldManager.SaveGame.GetData(ShouldReprospectNotifyKey);
-        if (notifyData != null) {
-            ShouldReprospectNotify = SerializerUtil.Deserialize<int>(notifyData);
+        if (notifyReprospectData != null) {
+            ShouldReprospectNotify = SerializerUtil.Deserialize<int>(notifyReprospectData);
+        } else if (pptData != null) {
+            Mod.Logger.Notification("Found no ppt data for save file. Notifying the player to run reprospect");
+            sapi.WorldManager.SaveGame.StoreData(ShouldReprospectNotifyKey, SerializerUtil.SerializedOne);
+            ShouldReprospectNotify = 1;
         }
 
-		if (savedData != null) {
-			var loaded = SerializerUtil.Deserialize<Dictionary<string, PptData>>(savedData);
+        if (pptData != null) {
+            var loaded = SerializerUtil.Deserialize<Dictionary<string, PptData>>(pptData);
 			if (loaded == null) return;
 			foreach (var kvp in loaded) {
 				oreData[kvp.Key] = kvp.Value;
@@ -101,15 +105,12 @@ public class PptTracker : ModSystem {
             Mod.Logger.Debug($"Loaded ppt data for {loaded.Count} ore codes from save");
             // Remove sometime later ( 1.23 ?). Fixing a 1.22 initial mod release loss of data on manual save
             sapi.Event.ServerRunPhase(EnumServerRunPhase.RunGame, FillOreDataFromReadings);
-        } else if (notifyData == null) {
-            // This will run even if a world had no readings created and still ask for reprospect. Not a big issue
-            Mod.Logger.Notification("Found no ppt data for save file. Notifying the player to run reprospect");
-            sapi.WorldManager.SaveGame.StoreData(ShouldReprospectNotifyKey, SerializerUtil.SerializedOne);
-            ShouldReprospectNotify = 1;
         }
 	}
 
 	private void OnSaveGameGettingSaved() {
+        sapi.WorldManager.SaveGame.StoreData(ShouldReprospectNotifyKey, SerializerUtil.Serialize(ShouldReprospectNotify));
+
         if (oreData.IsEmpty) return;
 
 		using var ms = new FastMemoryStream();

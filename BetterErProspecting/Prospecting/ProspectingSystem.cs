@@ -215,8 +215,6 @@ public class ProspectingSystem : ModSystem {
 			// Step 6: Clear offline players
 			var onlineUids = sapi.World.AllOnlinePlayers.Select(p => p.PlayerUID).ToHashSet();
             oml.PropickReadingsByPlayer.RemoveAllByKey(onlineUids.Contains);
-
-            sapi.WorldManager.SaveGame.StoreData(PptTracker.ShouldReprospectNotifyKey, SerializerUtil.SerializedZero);
             PptTracker.ShouldReprospectNotify = 0;
 
 			logger.Notification("[BetterEr Prospecting] Reprospecting finished");
