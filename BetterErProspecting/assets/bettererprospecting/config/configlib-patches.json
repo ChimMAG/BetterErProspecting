@@ -1,5 +1,5 @@
 {
-  "version": 29,
+  "version": 30,
   "file": "BetterErProspecting.json",
   "settings": [
     {
@@ -217,8 +217,9 @@
     },
     {
       "type": "separator",
-      "title": "DebugMode",
-      "weight": 99.0
+      "title": "Advanced",
+      "weight": 99.0,
+      "collapsible": true
     },
     {
       "code": "DebugMode",

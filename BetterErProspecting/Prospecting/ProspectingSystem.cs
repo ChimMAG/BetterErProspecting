@@ -308,19 +308,24 @@ public class ProspectingSystem : ModSystem {
             IBlockAccessor blockAccess = world.BlockAccessor;
             int regsize = blockAccess.RegionSize;
             IMapRegion reg = world.BlockAccessor.GetMapRegion(blockPos.X / regsize, blockPos.Z / regsize);
-            int lx = blockPos.X % regsize;
-            int lz = blockPos.Z % regsize;
-            IntDataMap2D map = reg.OreMaps[oreCode];
-            int noiseSize = map.InnerSize;
-            float posXInRegionOre = (float)lx / regsize * noiseSize;
-            float posZInRegionOre = (float)lz / regsize * noiseSize;
-            int oreDist = map.GetUnpaddedColorLerped(posXInRegionOre, posZInRegionOre);
-            int[] blockColumn = ppws.GetRockColumn(blockPos.X, blockPos.Z);
-            ppws.depositsByCode[oreCode].GeneratorInst.GetPropickReading(blockPos, oreDist, blockColumn, out _, out double imaginationLandFactor);
 
-            // 0.15 to allow ppt visibility. We will be overwriting this with the patch anyway
-            reading.TotalFactor = Math.Clamp(imaginationLandFactor, 0.15, 1.0);
+            if (reg.OreMaps.TryGetValue(oreCode, out IntDataMap2D? map)) {
+                int lx = blockPos.X % regsize;
+                int lz = blockPos.Z % regsize;
+                int noiseSize = map.InnerSize;
+                float posXInRegionOre = (float)lx / regsize * noiseSize;
+                float posZInRegionOre = (float)lz / regsize * noiseSize;
+                int oreDist = map.GetUnpaddedColorLerped(posXInRegionOre, posZInRegionOre);
+                int[] blockColumn = ppws!.GetRockColumn(blockPos.X, blockPos.Z);
+                ppws.depositsByCode[oreCode].GeneratorInst.GetPropickReading(blockPos, oreDist, blockColumn, out _, out double baseGameFactor);
 
+                // We will be overwriting this with the patch, but if mod is removed we keep it
+                reading.TotalFactor = baseGameFactor;
+            } else {
+                logger.Warning($"Oremap for orecode withOreMap: true, {oreCode} not found. Value changed in an existing world ? Generating with base 0.13 factor");
+                // Oremap doesn't exist. Leave at ultralow to allow ppt visibility
+                reading.TotalFactor = 0.13;
+            }
 
 			readings.OreReadings[oreCode] = reading;
             updatePairs.Add((oreCode, reading.PartsPerThousand));
