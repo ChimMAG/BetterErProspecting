@@ -9,8 +9,6 @@ using Vintagestory.GameContent;
 namespace BetterErProspecting.Item;
 public partial class ItemBetterErProspectingPick {
 
-	#region Helpers
-
 	// These are assholes
 	public static Dictionary<string, string> specialOreCodeConversion = new Dictionary<string, string>() {
 		// These have items different from the code used for the material. Funnily enough, both of them are child deposits
@@ -137,5 +135,4 @@ public partial class ItemBetterErProspectingPick {
         dropMultiplier = 0;
 		return true;
 	}
-	#endregion
 }

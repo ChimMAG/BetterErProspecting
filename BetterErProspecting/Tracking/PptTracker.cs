@@ -3,12 +3,15 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using BetterErProspecting.Item.Data;
+using Microsoft.Extensions.Caching.Memory;
 using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.CommandAbbr;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
@@ -40,18 +43,29 @@ public class PptDataPacket(Dictionary<string, PptData> data) {
     }
 }
 
+[ProtoContract]
+public sealed class CreateBoreholeWpPacket {
+    [ProtoMember(1)] public short hash { get; set; }
+}
+
 public class PptTracker : ModSystem {
 	public static readonly ConcurrentDictionary<string, PptData> oreData = new();
 	private const string SaveKey = "betterErProspectingPptData";
-	private const string ChannelName = "bettererprospecting_ppt";
+    private const string ChannelName = "bettererprospecting";
 
     public const string ShouldReprospectNotifyKey = "betterErProspectingShouldReprospectNotify";
     public static int ShouldReprospectNotify;
+
 
 	private IServerNetworkChannel serverChannel;
 	private IClientNetworkChannel clientChannel;
 	private ICoreServerAPI sapi;
 	private ICoreClientAPI capi;
+
+    public record BoreholeData(string text, Vec3d position);
+
+    public static readonly IMemoryCache hashToWaypointString = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromHours(1) });
+
 
     public override void StartServerSide(ICoreServerAPI api) {
 		base.StartServerSide(api);
@@ -67,7 +81,9 @@ public class PptTracker : ModSystem {
 			.EndSub();
 
 		serverChannel = api.Network.RegisterChannel(ChannelName)
-            .RegisterMessageType<PptDataPacket>();
+            .RegisterMessageType<CreateBoreholeWpPacket>()
+            .RegisterMessageType<PptDataPacket>()
+            .SetMessageHandler<CreateBoreholeWpPacket>(OnServerRecieveBoreholeWpPacket);
 
 		api.Event.PlayerJoin += OnPlayerJoin;
 		api.Event.SaveGameLoaded += OnSaveGameLoaded;
@@ -77,11 +93,47 @@ public class PptTracker : ModSystem {
 	public override void StartClientSide(ICoreClientAPI api) {
 		base.StartClientSide(api);
 		capi = api;
+        capi.RegisterLinkProtocol("btrprwayp", onCreateWaypointClicked);
 
 		clientChannel = api.Network.RegisterChannel(ChannelName)
+            .RegisterMessageType<CreateBoreholeWpPacket>()
 			.RegisterMessageType<PptDataPacket>()
             .SetMessageHandler<PptDataPacket>(OnClientReceivePacket);
 	}
+
+    private void OnServerRecieveBoreholeWpPacket(IServerPlayer sP, CreateBoreholeWpPacket packet) {
+        if (hashToWaypointString.TryGetValue(packet.hash, out BoreholeData bd)) {
+            var rand = sapi.World.Rand;
+
+            int color = ColorUtil.HsvToRgba(
+                rand.Next(256), // Hue
+                rand.Next(180, 256), // Saturation
+                rand.Next(200, 256), // Value (brightness)
+                255 // Alpha
+            );
+
+            Waypoint waypoint = new Waypoint() {
+                Color = color,
+                OwningPlayerUid = sP.PlayerUID,
+                Position = bd.position,
+                Title = "Borehole results",
+                Text = bd.text,
+                Icon = "propick"
+            };
+
+            var wpl = sapi.ModLoader.GetModSystem<WorldMapManager>().MapLayers.FirstOrDefault(ml => ml is WaypointMapLayer) as WaypointMapLayer;
+            wpl?.AddWaypoint(waypoint, sP);
+            sP.SendMessage(GlobalConstants.InfoLogChatGroup, "Waypoint Created", EnumChatType.Notification);
+        } else {
+            sP.SendMessage(GlobalConstants.InfoLogChatGroup, "Failed to fetch data. Was borehole done too long ago ?", EnumChatType.Notification);
+        }
+    }
+
+    private void onCreateWaypointClicked(LinkTextComponent comp) {
+        string target = comp.Href.Substring("btrprwayp://".Length);
+        clientChannel.SendPacket(new CreateBoreholeWpPacket { hash = short.Parse(target) });
+    }
+
 
 	private void OnSaveGameLoaded() {
         byte[]? pptData = sapi.WorldManager.SaveGame.GetData(SaveKey);

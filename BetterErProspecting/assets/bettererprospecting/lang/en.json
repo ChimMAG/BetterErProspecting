@@ -77,8 +77,11 @@
   "BoreholeDmg-description": "Tool damage for borehole mode",
   "BoreholeRadius-setting": "Borehole Radius",
   "BoreholeRadius-description": "Radius for borehole mode. 0 Makes a line",
-  "BoreholeScansOre-setting": "Borehole Scans Ore",
+  "BoreholeWpMarker-setting": "Borehole Waypoint",
+  "BoreholeWpMarker-description": "Creates Waypoints for borehole results",
+
   "BoreholeScansOre-description": "Allows borehole to scan ore",
+  "BoreholeScansOre-setting": "Borehole Scans Ore",
   "BoreholeScansStone-setting": "Borehole Scans Stone",
   "BoreholeScansStone-description": "Allows borehole to scan stone",
 

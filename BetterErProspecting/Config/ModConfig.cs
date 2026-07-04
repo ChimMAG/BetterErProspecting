@@ -31,6 +31,7 @@ public class ModConfig {
 	public bool AddBoreHoleMode = true;
 	public int BoreholeRadius = 8;
 	public int BoreholeDmg = 2;
+    public bool BoreholeWpMarker = false;
 	public bool BoreholeScansOre = true;
 	public bool BoreholeScansStone = false;
 

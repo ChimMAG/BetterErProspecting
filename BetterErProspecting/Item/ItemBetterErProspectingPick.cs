@@ -14,6 +14,7 @@ using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using ModConfig = BetterErProspecting.Config.ModConfig;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BetterErProspecting.Item;
 public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
@@ -23,6 +24,7 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 
 	public const int densityRadius = GlobalConstants.ChunkSize;
     public static ModConfig config => ModConfig.Instance;
+    private short hashCounter = 0;
 
     /// <summary>
     ///  Register an outside mod's mode to the propick
@@ -315,9 +317,14 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 			sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-not-found"));
 		} else {
 			sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-found"));
-			var linkedNames = blockKeys.Select(kv => getHandbookLinkOrName(world, serverPlayer, kv.Key, handbookUrl: blockKeys[kv.Key])).ToList();
-			sb.AppendLine(string.Join(", ", linkedNames));
-		}
+            var linkedNames = string.Join(", ", blockKeys.Select(kv => getHandbookLinkOrName(world, serverPlayer, kv.Key, handbookUrl: blockKeys[kv.Key])).ToList());
+            sb.AppendLine(linkedNames);
+
+            if (hashCounter >= 25000) hashCounter = 0;
+            PptTracker.hashToWaypointString.Set(hashCounter, new PptTracker.BoreholeData(linkedNames, serverPlayer.Entity.Pos.XYZ));
+            sb.AppendLine($"<a href=\"btrprwayp://{hashCounter}\">Create a waypoint</a>");
+            hashCounter++;
+        }
 
 		serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, sb.ToString(), EnumChatType.Notification);
         return config.BoreholeDmg;

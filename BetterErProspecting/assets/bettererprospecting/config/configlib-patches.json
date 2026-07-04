@@ -1,5 +1,5 @@
 {
-  "version": 30,
+  "version": 31,
   "file": "BetterErProspecting.json",
   "settings": [
     {
@@ -193,6 +193,15 @@
         "max": 10
       },
       "weight": 14.25
+    },
+    {
+      "code": "BoreholeWpMarker",
+      "ingui": "BoreholeWpMarker-setting",
+      "type": "boolean",
+      "comment": "BoreholeWpMarker-description",
+      "clientSide": true,
+      "default": false,
+      "weight": 14.26
     },
     {
       "type": "separator",
