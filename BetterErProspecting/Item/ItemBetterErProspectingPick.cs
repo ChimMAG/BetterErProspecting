@@ -15,6 +15,7 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using ModConfig = BetterErProspecting.Config.ModConfig;
 using Microsoft.Extensions.Caching.Memory;
+using BetterErProspecting.Extensions;
 
 namespace BetterErProspecting.Item;
 public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
@@ -139,8 +140,7 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
         ProPickWorkSpace ppws = ObjectCacheUtil.TryGet<ProPickWorkSpace>(api, "propickworkspace");
 
 		var textResults = readings.ToHumanReadable(serverPlayer.LanguageCode, ppws.pageCodes);
-		serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, textResults, EnumChatType.Notification);
-
+        serverPlayer.Info(textResults);
 
         if (config.DebugMode) {
             debugMessages.ForEach(msg => msg.Send(serverPlayer));
@@ -181,12 +181,12 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 				? "bettererprospecting:closest-ore-is"
 				: "bettererprospecting:closest-ore-not-found";
 			object[] messageArgs = closestOre != -1 ? [closestOre] : [radius];
-			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, messageKey, messageArgs), EnumChatType.Notification);
+            serverPlayer.Info(messageKey, messageArgs);
 		} else {
 			messageKey = closestOre != -1
 				? "bettererprospecting:promimity-vague-ore-nearby"
 				: "bettererprospecting:proximity-vague-ore-not-found";
-			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, messageKey), EnumChatType.Notification);
+            serverPlayer.Info(messageKey);
 		}
 
         return config.ProximityDmg;
@@ -195,9 +195,10 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 	// Square radius-based search
     private int ProbeStone(IWorldAccessor world, IServerPlayer serverPlayer, ItemSlot __, BlockSelection blockSel) {
 		int walkRadius = config.StoneSearchRadius;
+        bool distanceSearch = !config.StonePercentSearch;
 
 		StringBuilder sb = new StringBuilder();
-		sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:area-sample", walkRadius));
+        sb.AppendLine(serverPlayer.L("bettererprospecting:area-sample", walkRadius));
 
 		Dictionary<string, (int Distance, int Count)> rockInfo = new();
         var blacklistedCodes = BetterErProspect.Config.StoneSearchBlackList.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToHashSet();
@@ -215,8 +216,9 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
                 int distance = -1;
 
                 // No need for this in this case
-                if (config.StonePercentSearch)
+                if (distanceSearch) {
                     distance = (int)blockSel.Position.DistanceTo(new BlockPos(x, y, z));
+                }
 
                 if (rockInfo.TryGetValue(key, out var existing)) {
                     rockInfo[key] = (Math.Min(existing.Distance, distance), existing.Count + 1);
@@ -227,11 +229,11 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 
 
 		if (rockInfo.Count == 0) {
-			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:no-rocks-near"), EnumChatType.Notification);
+            serverPlayer.Info("bettererprospecting:no-rocks-near");
             return config.StoneDmg;
 		}
 
-		sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:found-rocks"));
+        sb.AppendLine(serverPlayer.L("bettererprospecting:found-rocks"));
 
 		int totalRocks = rockInfo.Values.Sum(v => v.Count);
 
@@ -259,10 +261,10 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 
 			string itemLink = getHandbookLinkOrName(world, serverPlayer, key);
 
-			if (config.StonePercentSearch) {
-				sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, $"{itemLink}: {percentScaled:0.##} %"));
+            if (distanceSearch) {
+                sb.AppendLine(serverPlayer.L("stone-mode-blocks-away", itemLink, distance));
 			} else {
-				sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:stone-mode-blocks-away", itemLink, distance));
+                sb.AppendLine($"{itemLink}: {percentScaled:0.##} %");
 			}
 		}
 
@@ -270,7 +272,7 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 			world.Api.ModLoader.GetModSystem<ModSystemOreMap>()?.DidProbe(propickReading, serverPlayer);
 		}
 
-		serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, sb.ToString(), EnumChatType.Notification);
+        serverPlayer.Info(sb.ToString());
         return config.StoneDmg;
 	}
 
@@ -280,20 +282,20 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 		BlockFacing face = blockSel.Face;
 
 		if (!config.BoreholeScansOre && !config.BoreholeScansStone) {
-			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-no-filter"), EnumChatType.Notification);
+            serverPlayer.Info("borehole-no-filter");
             return 1;
 		}
 
 		// It's MY mod. And I get to decide what's important for immersion:tm:
 		if (face != BlockFacing.UP) {
-			serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-sample-upside"), EnumChatType.Notification);
+            serverPlayer.Info("borehole-sample-upside");
             return 1;
 		}
 
 		StringBuilder sb = new StringBuilder();
 		ProPickWorkSpace ppws = ObjectCacheUtil.TryGet<ProPickWorkSpace>(api, "propickworkspace");
 
-		sb.Append(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-sample-taken"));
+        sb.Append(serverPlayer.L("bettererprospecting:borehole-sample-taken"));
 
 		// Need to hold unique insertion order. OrderedHashSet where art thou ?
 		var blockKeys = new Vintagestory.API.Datastructures.OrderedDictionary<string, string>();
@@ -314,19 +316,19 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 
 		if (blockKeys.Count == 0) {
 			sb.AppendLine();
-			sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-not-found"));
+            sb.AppendLine(serverPlayer.L("bettererprospecting:borehole-not-found"));
 		} else {
-			sb.AppendLine(Lang.GetL(serverPlayer.LanguageCode, "bettererprospecting:borehole-found"));
+            sb.AppendLine(serverPlayer.L("bettererprospecting:borehole-found"));
             var linkedNames = string.Join(", ", blockKeys.Select(kv => getHandbookLinkOrName(world, serverPlayer, kv.Key, handbookUrl: blockKeys[kv.Key])).ToList());
             sb.AppendLine(linkedNames);
 
             if (hashCounter >= 25000) hashCounter = 0;
             PptTracker.hashToWaypointString.Set(hashCounter, new PptTracker.BoreholeData(linkedNames, serverPlayer.Entity.Pos.XYZ));
-            sb.AppendLine($"<a href=\"btrprwayp://{hashCounter}\">Create a waypoint</a>");
+            sb.AppendLine($"<a href=\"btrprwayp://{hashCounter}\">{Lang.GetL(serverPlayer.LanguageCode, "borehole-waypoint-created")}</a>");
             hashCounter++;
         }
 
-		serverPlayer.SendMessage(GlobalConstants.InfoLogChatGroup, sb.ToString(), EnumChatType.Notification);
+        serverPlayer.Info(sb.ToString());
         return config.BoreholeDmg;
 	}
 

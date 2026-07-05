@@ -8,14 +8,13 @@ using Vintagestory.GameContent;
 
 namespace BetterErProspecting.Item;
 public partial class ItemBetterErProspectingPick {
-
-	// These are assholes
-	public static Dictionary<string, string> specialOreCodeConversion = new Dictionary<string, string>() {
-		// These have items different from the code used for the material. Funnily enough, both of them are child deposits
+    // Child nodes ( and some special cases ) need casting
+    public static Dictionary<string, string> specialOreCodeConversion = new() {
 		{"nativegold", "gold" },
 		{"nativesilver", "silver" },
 		{"lapislazuli", "lapis" }
 	};
+
 	// For now a few cases. The conversion is a public method, can extend from there.
 	// I will assume basegame's logic of "_" meaning childnode
 	private static string ConvertChildRocks(string code) {
@@ -75,7 +74,7 @@ public partial class ItemBetterErProspectingPick {
 		return getHandbookLinkOrName(world, serverPlayer.LanguageCode, key, itemName, handbookUrl);
 	}
 
-	public static string getHandbookLinkOrName(IWorldAccessor world, string languageCode, string key, string itemName = null, string handbookUrl = null) {
+    public static string getHandbookLinkOrName(IWorldAccessor world, string languageCode, string key, string? itemName = null, string handbookUrl = null) {
 		itemName ??= Lang.GetL(languageCode, key);
 		if (handbookUrl != null) return $"<a href=\"handbook://{handbookUrl}\">{itemName}</a>";
 

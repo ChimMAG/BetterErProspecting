@@ -1,4 +1,5 @@
-﻿using BetterErProspecting.Tracking;
+﻿using BetterErProspecting.Extensions;
+using BetterErProspecting.Tracking;
 using Vintagestory.API.Common.CommandAbbr;
 
 namespace BetterErProspecting.Prospecting;
@@ -136,7 +137,7 @@ public class ProspectingSystem : ModSystem {
 
                 var message = $"[BetterEr Prospecting] Reprospect progress: {percent}% ({current}/{allPlayerReadingsCount})";
 
-                caller?.SendMessage(GlobalConstants.AllChatGroups, message, EnumChatType.Notification);
+                caller?.General(message);
                 logger.Notification(message);
             }
 
@@ -216,15 +217,14 @@ public class ProspectingSystem : ModSystem {
 			var onlineUids = sapi.World.AllOnlinePlayers.Select(p => p.PlayerUID).ToHashSet();
             oml.PropickReadingsByPlayer.RemoveAllByKey(onlineUids.Contains);
             PptTracker.ShouldReprospectNotify = 0;
+            sapi.WorldManager.SaveGame.StoreData(PptTracker.ShouldReprospectNotifyKey, SerializerUtil.SerializedOne);
 
 			logger.Notification("[BetterEr Prospecting] Reprospecting finished");
 		} catch (Exception ex) {
 			logger.Error("[BetterEr Prospecting] Error during reprospecting: {0}", ex);
 		} finally {
 			isReprospecting = false;
-			caller?.SendMessage(GlobalConstants.AllChatGroups,
-                $"[BetterEr Prospecting] Finished reprospecting. Processed {processed} readings.",
-				EnumChatType.Notification);
+            caller?.General($"[BetterEr Prospecting] Finished reprospecting. Processed {processed} readings.");
 		}
 	}
 
@@ -264,8 +264,8 @@ public class ProspectingSystem : ModSystem {
 			});
 
 		if (nopageVariant.Count <= 0) return codeToFoundCount;
-        debugMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key", string.Join(", ", nopageVariant))));
-        debugMessages.Add(new DelayedMessage(Lang.Get("bettererprospecting:debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys))));
+        debugMessages.Add(new DelayedMessage("debug-bad-ppws-key", string.Join(", ", nopageVariant)));
+        debugMessages.Add(new DelayedMessage("debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys)));
 
 		return codeToFoundCount;
 	}

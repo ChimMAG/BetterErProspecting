@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using BetterErProspecting.Extensions;
 using BetterErProspecting.Item.Data;
 using Microsoft.Extensions.Caching.Memory;
 using ProtoBuf;
@@ -123,9 +124,9 @@ public class PptTracker : ModSystem {
 
             var wpl = sapi.ModLoader.GetModSystem<WorldMapManager>().MapLayers.FirstOrDefault(ml => ml is WaypointMapLayer) as WaypointMapLayer;
             wpl?.AddWaypoint(waypoint, sP);
-            sP.SendMessage(GlobalConstants.InfoLogChatGroup, "Waypoint Created", EnumChatType.Notification);
+            sP.Info("borehole-waypoint-created");
         } else {
-            sP.SendMessage(GlobalConstants.InfoLogChatGroup, "Failed to fetch data. Was borehole done too long ago ?", EnumChatType.Notification);
+            sP.Info("borehole-waypoint-no-data");
         }
     }
 

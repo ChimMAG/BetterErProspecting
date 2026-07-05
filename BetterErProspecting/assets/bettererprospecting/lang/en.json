@@ -14,6 +14,9 @@
   "borehole-sample-taken": "Bore sample taken. ",
   "borehole-not-found": "No results found",
   "borehole-found": "Found the following: ",
+  "borehole-waypoint-created": "Waypoint Created",
+  "borehole-waypoint-create": "Cretea a waypoint",
+  "borehole-waypoint-no-data": "Failed to fetch data. Was borehole done too long ago ?",
 
   "stone": "Stone Mode (Long range, distance search for stone)",
   "area-sample": "Area sample taken for a radius of {0}:",

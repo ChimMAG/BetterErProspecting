@@ -1,28 +1,31 @@
-﻿using Vintagestory.API.Common;
+﻿using BetterErProspecting.Extensions;
 using Vintagestory.API.Config;
 using Vintagestory.API.Server;
 
 namespace BetterErProspecting.Item.Data;
 
 public class DelayedMessage {
-	public int chatGroup;
-	public string message;
-	public EnumChatType ChatType;
+    private int chatGroup = GlobalConstants.InfoLogChatGroup;
+    private string message;
+    private object[]? args;
 
-    internal DelayedMessage(string message, int chatGroup, EnumChatType chatType = EnumChatType.Notification) {
+    internal DelayedMessage(string message, int chatGroup, params object[] args) {
 		this.chatGroup = chatGroup;
 		this.message = message;
-		ChatType = chatType;
+        this.args = args;
+    }
+
+    internal DelayedMessage(string message, params object[] args) {
+        this.message = message;
+        this.args = args;
 	}
 
     internal DelayedMessage(string message) {
-		chatGroup = GlobalConstants.InfoLogChatGroup;
 		this.message = message;
-		ChatType = EnumChatType.Notification;
 	}
 
 	public void Send(IServerPlayer sp) {
-		sp.SendMessage(chatGroup, message, ChatType);
+        sp.Info(message, chatGroup, args);
 	}
 }
 

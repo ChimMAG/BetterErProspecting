@@ -29,7 +29,7 @@ public class ReadingToHumanReadableStone {
 
         var totalFactorField = AccessTools.Field(typeof(OreReading), nameof(OreReading.TotalFactor));
         var kvpCtor = AccessTools.Constructor(typeof(KeyValuePair<double, string>), new[] { typeof(double), typeof(string) });
-        var listAddMethod = AccessTools.Method(typeof(List<KeyValuePair<double, string>>), nameof(List<KeyValuePair<double, string>>.Add));
+        var listAddMethod = AccessTools.Method(typeof(List<KeyValuePair<double, string>>), nameof(List<>.Add));
         var helperMethod = AccessTools.Method(typeof(ReadingToHumanReadableStone), nameof(ProcessStoneReading));
 
         // Find the pattern for source.Add(new KeyValuePair<double, string>(oreReading2.TotalFactor, str2))
