@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using BetterErProspecting.Extensions;
 using BetterErProspecting.Item.Data;
-using Microsoft.Extensions.Caching.Memory;
 using ProtoBuf;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
@@ -46,7 +45,7 @@ public class PptDataPacket(Dictionary<string, PptData> data) {
 
 [ProtoContract]
 public sealed class CreateBoreholeWpPacket {
-    [ProtoMember(1)] public short hash { get; set; }
+    [ProtoMember(1)] public int hash { get; set; }
 }
 
 public class PptTracker : ModSystem {
@@ -65,7 +64,27 @@ public class PptTracker : ModSystem {
 
     public record BoreholeData(string text, Vec3d position);
 
-    public static readonly IMemoryCache hashToWaypointString = new MemoryCache(new MemoryCacheOptions() { ExpirationScanFrequency = TimeSpan.FromHours(1) });
+    public static readonly ConcurrentDictionary<int, BoreholeData> hashToWaypointString = new();
+
+    private static int lastClearedIndex;
+    private static int hashCounter;
+    private const int MaxSlots = 100000;
+
+    private void ClearOldWaypoints(float dt) {
+        int currentMax = hashCounter;
+        if (currentMax >= lastClearedIndex) {
+            for (int i = lastClearedIndex; i < currentMax; i++)
+                hashToWaypointString.TryRemove(i, out _);
+        } else {
+            // wrapped since last clear
+            for (int i = lastClearedIndex; i < MaxSlots; i++)
+                hashToWaypointString.TryRemove(i, out _);
+            for (int i = 0; i < currentMax; i++)
+                hashToWaypointString.TryRemove(i, out _);
+        }
+
+        lastClearedIndex = currentMax;
+    }
 
 
     public override void StartServerSide(ICoreServerAPI api) {
@@ -86,6 +105,8 @@ public class PptTracker : ModSystem {
             .RegisterMessageType<PptDataPacket>()
             .SetMessageHandler<CreateBoreholeWpPacket>(OnServerRecieveBoreholeWpPacket);
 
+
+        api.Event.RegisterGameTickListener(ClearOldWaypoints, (int)TimeSpan.FromHours(1).TotalMilliseconds);
 		api.Event.PlayerJoin += OnPlayerJoin;
 		api.Event.SaveGameLoaded += OnSaveGameLoaded;
 		api.Event.GameWorldSave += OnSaveGameGettingSaved;
@@ -101,6 +122,15 @@ public class PptTracker : ModSystem {
 			.RegisterMessageType<PptDataPacket>()
             .SetMessageHandler<PptDataPacket>(OnClientReceivePacket);
 	}
+
+    public static string trackPlayerBoreholeWp(IServerPlayer serverPlayer, string linkedNames) {
+        if (hashCounter >= MaxSlots) hashCounter = 0;
+        hashToWaypointString[hashCounter] = new BoreholeData(linkedNames, serverPlayer.Entity.Pos.XYZ);
+        var rtn = $"<a href=\"btrprwayp://{hashCounter}\">{serverPlayer.L("borehole-waypoint-create")}</a>";
+        hashCounter++;
+        return rtn;
+    }
+
 
     private void OnServerRecieveBoreholeWpPacket(IServerPlayer sP, CreateBoreholeWpPacket packet) {
         if (hashToWaypointString.TryGetValue(packet.hash, out BoreholeData bd)) {
@@ -132,7 +162,7 @@ public class PptTracker : ModSystem {
 
     private void onCreateWaypointClicked(LinkTextComponent comp) {
         string target = comp.Href.Substring("btrprwayp://".Length);
-        clientChannel.SendPacket(new CreateBoreholeWpPacket { hash = short.Parse(target) });
+        clientChannel.SendPacket(new CreateBoreholeWpPacket { hash = int.Parse(target) });
     }
 
 
