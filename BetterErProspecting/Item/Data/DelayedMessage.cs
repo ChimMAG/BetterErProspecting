@@ -7,7 +7,7 @@ namespace BetterErProspecting.Item.Data;
 public class DelayedMessage {
     private int chatGroup = GlobalConstants.InfoLogChatGroup;
     private string message;
-    private object[]? args;
+    private object[]? args = [];
 
     internal DelayedMessage(string message, int chatGroup, params object[] args) {
 		this.chatGroup = chatGroup;
@@ -25,6 +25,7 @@ public class DelayedMessage {
 	}
 
 	public void Send(IServerPlayer sp) {
+        args ??= [];
         sp.Info(message, chatGroup, args);
 	}
 }
