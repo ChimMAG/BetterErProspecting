@@ -163,8 +163,8 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
         var blacklistedCodes = BetterErProspect.Config.DensityBlackListedOres.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToHashSet();
 
 		WalkBlocksSphere(pos, radius, (walkBlock, x, y, z) => {
-			if (!IsOre(walkBlock, cache, out var key)) return;
-            if (blacklistedCodes.Contains(key)) return;
+            if (!IsOre(walkBlock, cache, out var _, out var typeKey)) return;
+            if (blacklistedCodes.Contains(typeKey)) return;
 
 			var distanceTo = (int)Math.Round(pos.DistanceTo(x, y, z));
 
@@ -202,7 +202,6 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 		Dictionary<string, (int Distance, int Count)> rockInfo = new();
         var blacklistedCodes = BetterErProspect.Config.StoneSearchBlackList.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct().ToHashSet();
 
-
 		BlockPos blockPos = blockSel.Position.Copy();
 		var blockEnd = blockPos.AddCopy(-walkRadius, 0, -walkRadius);
 		blockEnd.Y = 1;
@@ -210,8 +209,8 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
 
 		api.World.BlockAccessor.WalkBlocks(blockPos.AddCopy(walkRadius, walkRadius, walkRadius), blockEnd,
 			(walkBlock, x, y, z) => {
-                if (!IsRock(walkBlock, cache, out string key)) return;
-                if (blacklistedCodes.Contains(key)) return;
+                if (!IsRock(walkBlock, cache, out string fullKey)) return;
+                if (blacklistedCodes.Contains(fullKey)) return;
                 int distance = -1;
 
                 // No need for this in this case
@@ -219,10 +218,10 @@ public sealed partial class ItemBetterErProspectingPick : ItemProspectingPick {
                     distance = (int)blockSel.Position.DistanceTo(new BlockPos(x, y, z));
                 }
 
-                if (rockInfo.TryGetValue(key, out var existing)) {
-                    rockInfo[key] = (Math.Min(existing.Distance, distance), existing.Count + 1);
+                if (rockInfo.TryGetValue(fullKey, out var existing)) {
+                    rockInfo[fullKey] = (Math.Min(existing.Distance, distance), existing.Count + 1);
                 } else {
-                    rockInfo[key] = (distance, 1);
+                    rockInfo[fullKey] = (distance, 1);
                 }
             });
 

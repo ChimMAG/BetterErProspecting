@@ -86,8 +86,8 @@ public partial class ItemBetterErProspectingPick {
 
 		return handbookUrl != null ? $"<a href=\"handbook://{handbookUrl}\">{itemName}</a>" : itemName;
 	}
-	public static bool IsOre(Block block, Dictionary<string, string> cache, out string key, out string typeKey) {
-		key = null;
+	public static bool IsOre(Block block, Dictionary<string, string> cache, out string fullKey, out string typeKey) {
+		fullKey = null;
 		typeKey = null;
 
 		if (block.BlockMaterial != EnumBlockMaterial.Ore || block.Variant == null)
@@ -100,14 +100,14 @@ public partial class ItemBetterErProspectingPick {
 			cache[oreKey] = typeKey;
 		}
 
-		key = "ore-" + typeKey;
+		fullKey = "ore-" + typeKey;
 		return true;
 	}
-	public static bool IsOre(Block block, Dictionary<string, string> cache, out string key) {
-		return IsOre(block, cache, out key, out _);
+	public static bool IsOre(Block block, Dictionary<string, string> cache, out string fullKey) {
+		return IsOre(block, cache, out fullKey, out _);
 	}
-	public static bool IsRock(Block block, Dictionary<string, string> cache, out string key, out string rockKey) {
-		key = null;
+	public static bool IsRock(Block block, Dictionary<string, string> cache, out string fullkey, out string rockKey) {
+		fullkey = null;
 		rockKey = null;
 		if (block.Variant == null || !block.Variant.TryGetValue("rock", out rockKey))
 			return false;
@@ -117,11 +117,11 @@ public partial class ItemBetterErProspectingPick {
 			cache[rockKey] = cached;
 		}
 
-		key = cache[rockKey];
+		fullkey = cached;
 		return true;
 	}
-	public static bool IsRock(Block block, Dictionary<string, string> cache, out string key) {
-		return IsRock(block, cache, out key, out _);
+	public static bool IsRock(Block block, Dictionary<string, string> cache, out string fullkey) {
+		return IsRock(block, cache, out fullkey, out _);
 	}
 
     private static bool breakIsPropickable(IWorldAccessor world, BlockSelection blockSel, ref float dropMultiplier) {

@@ -249,23 +249,24 @@ public class ProspectingSystem : ModSystem {
 				if (walkBlock.Variant == null)
 					return;
 
-				bool isOre = ItemBetterErProspectingPick.IsOre(walkBlock, blockCache, out _, out var key);
-				bool isRock = !isOre && ItemBetterErProspectingPick.IsRock(walkBlock, blockCache, out _, out key);
+                bool isOre = ItemBetterErProspectingPick.IsOre(walkBlock, blockCache, out _, out var typeKey);
+                bool isRock = !isOre && ItemBetterErProspectingPick.IsRock(walkBlock, blockCache, out _, out typeKey);
 
 				if (!isOre && !isRock) return;
-				if (blacklistedCodes.Contains(key))
+                if (blacklistedCodes.Contains(typeKey))
 					return;
 
-				if (depositKeys.Contains(key)) {
-					codeToFoundCount[key] = codeToFoundCount.GetValueOrDefault(key, 0) + 1;
+                if (depositKeys.Contains(typeKey)) {
+                    codeToFoundCount[typeKey] = codeToFoundCount.GetValueOrDefault(typeKey, 0) + 1;
 				} else if (isOre) {
-					nopageVariant.Add(key);
+                    nopageVariant.Add(typeKey);
 				}
 			});
 
-		if (nopageVariant.Count <= 0) return codeToFoundCount;
-        debugMessages.Add(new DelayedMessage("debug-bad-ppws-key", string.Join(", ", nopageVariant)));
-        debugMessages.Add(new DelayedMessage("debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys)));
+        if (nopageVariant.Count > 0) {
+            debugMessages.Add(new DelayedMessage("debug-bad-ppws-key", string.Join(", ", nopageVariant)));
+            debugMessages.Add(new DelayedMessage("debug-bad-ppws-key-expected", string.Join(", ", ppws.depositsByCode.Keys)));
+        }
 
 		return codeToFoundCount;
 	}

@@ -15,6 +15,7 @@ public class ModConfig {
 	public int NewDensityDmg = 3;
 
     public string DensityBlackListedOres = "flint, quartz";
+    public string StoneSearchBlackList = "rock-suevite";
 
 	public bool AddProximityMode = true;
 	public bool ProximityVagueDescriptors = false;
@@ -26,7 +27,6 @@ public class ModConfig {
 	public bool StonePercentSearch = true;
 	public int StoneSearchRadius = 64;
 	public int StoneDmg = 4;
-    public string StoneSearchBlackList = "rock-suevite";
 
 	public bool AddBoreHoleMode = true;
 	public int BoreholeRadius = 8;

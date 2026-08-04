@@ -50,7 +50,7 @@
   "NewDensityDmg-setting": "New Density Tool Damage",
   "NewDensityDmg-description": "Tool damage for new density mode",
   "DensityBlackListedOres-setting": "Density blacklist ores",
-  "DensityBlackListedOres-description": "Comma-separated ore codes ignored by density mode. Use ore key. Default if you're not sure.",
+  "DensityBlackListedOres-description": "Comma-separated ore codes ignored by density mode. Use ore type key (e.g. 'flint'). Shared by proximity mode. Default if you're not sure.",
 
   "AddProximityMode-setting": "Enable Proximity Mode",
   "AddProximityMode-description": "Enables proximity mode. Looks for closest ore. Sphere-based",
@@ -72,7 +72,7 @@
   "StoneDmg-setting": "Stone Damage",
   "StoneDmg-description": "Tool damage for stone mode",
   "StoneSearchBlackList-setting": "Stone Search blacklist rocks",
-  "StoneSearchBlackList-description": "Comma-separated ore codes ignored by stone search mode. Default if you're not sure.",
+  "StoneSearchBlackList-description": "Comma-separated ore codes ignored by stone search mode. Use fully qualified key ( e.g. 'rock-suevite' ). Default if you're not sure.",
 
   "AddBoreHoleMode-setting": "Enable Borehole Mode",
   "AddBoreHoleMode-description": "A straight-line mode. Only reports when breaking the top of the block, scans the world until the bottom and reports selected blocks ( Any or both of Ore and Stone blocks )",
