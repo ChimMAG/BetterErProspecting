@@ -147,8 +147,7 @@ public class PptTracker : ModSystem {
                 Color = color,
                 OwningPlayerUid = sP.PlayerUID,
                 Position = bd.position,
-                Title = "Borehole results",
-                Text = bd.text,
+                Title = $"Borehole results:\n{bd.text}",
                 Icon = "propick"
             };
 
