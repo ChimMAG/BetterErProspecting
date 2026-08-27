@@ -368,7 +368,11 @@ public class ProspectingSystem : ModSystem {
             readings.OreReadings.Add(AquiferData.OreReadingKey, chnData);
         }
 
-        delayedMessages.Add(new DelayedMessage(AquiferManager.GetAquiferDirectionHint(world, pos)));
+        delayedMessages.Add(
+            new DelayedMessage(AquiferManager.GetAquiferDirectionHint(world, pos)) {
+                externalMod = true
+            }
+        );
     }
 	#endregion
 

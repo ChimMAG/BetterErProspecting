@@ -31,6 +31,11 @@ public static class ServerPlayerExtensions {
             message = $"{modid}:{message}";
         }
 
+        // This is a crutch because i didn't consider passing complete strings from outside mods; i.e. they already went through Lang.Get()
+        if (message.Contains("!:")) {
+            message = message.Replace("!:", "");
+        }
+
         return message;
     }
 }
